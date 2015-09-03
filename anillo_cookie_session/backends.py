@@ -64,7 +64,7 @@ class JWSCookieStorage(BaseCookieStorage):
 
 
 class JWECookieStorage(BaseCookieStorage):
-    def __init__(self, secret, cookie_name="session-id", cypher_alg="A128KW", cypher_enc="A256GCM"):
+    def __init__(self, secret, cookie_name="session-id", cypher_alg="A128KW", cypher_enc="A256CBC-HS512"):
         self.cookie_name = cookie_name
         self.secret = secret
         self.cypher_alg = cypher_alg

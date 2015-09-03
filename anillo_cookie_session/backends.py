@@ -1,6 +1,7 @@
 import json
 
-from itsdangerous import JSONWebSignatureSerializer
+from jwkest.jwk import SYMKey
+from jwkest.jwe import JWE
 
 
 class _SessionKey:
@@ -47,12 +48,35 @@ class InsecureJsonCookieStorage(BaseCookieStorage):
 
 
 class JWSCookieStorage(BaseCookieStorage):
-    def __init__(self, secret, cookie_name="session-id"):
+    def __init__(self, secret, cookie_name="session-id", sign_alg="ES256"):
         self.cookie_name = cookie_name
-        self.serializer = JSONWebSignatureSerializer(secret)
+        self.secret = secret
+        self.sign_alg = sign_alg
 
     def dumps(self, data):
-        return self.serializer.dumps(data)
+        sym_key = SYMKey(key=self.secret, alg=self.cypher_alg)
+        jws = JWS(data, alg=self.sign_alg)
+        return jws.sign_compact(keys=[self.secret])
 
     def loads(self, data):
-        return self.serializer.loads(data)
+        jws = JWS()
+        return jws.verify_compact(data, keys=[self.secret])
+
+
+class JWECookieStorage(BaseCookieStorage):
+    def __init__(self, secret, cookie_name="session-id", cypher_alg="A128KW", cypher_enc="A256GCM"):
+        self.cookie_name = cookie_name
+        self.secret = secret
+        self.cypher_alg = cypher_alg
+        self.cypher_enc = cypher_enc
+        self.sym_key = SYMKey(key=self.secret, alg=self.cypher_alg)
+
+    def dumps(self, data):
+        jwe = JWE(json.dumps(data), alg=self.cypher_alg, enc=self.cypher_enc)
+        return jwe.encrypt([self.sym_key])
+
+    def loads(self, data):
+        (plain, success) = JWE().decrypt(data, keys=[self.sym_key])
+        if success:
+          return json.loads(plain.decode('utf-8'))
+        return None

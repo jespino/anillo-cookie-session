@@ -15,7 +15,7 @@ setup(
     license='BSD',
     packages=['anillo_cookie_session'],
     install_requires=[
-        'itsdangerous',
+        'pyjwkest',
     ],
     setup_requires=[
         'versiontools >= 1.9.1',

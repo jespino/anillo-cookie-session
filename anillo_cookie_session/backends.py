@@ -33,7 +33,6 @@ class BaseCookieStorage:
 
     def retrieve(self, request, session_key):
         try:
-            print(self.loads(session_key.get()))
             return self.loads(session_key.get())
         except Exception:
             return {}
